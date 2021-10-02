@@ -1,0 +1,58 @@
+#!/bin/bash
+scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+dump_dir="${scriptdir}/dump"
+mkdir -p "${dump_dir}"
+
+cmd="${1}"
+conf="${2}"
+dump="${3}"
+
+function display_help() {
+    cat "${scriptdir}/doc/help.txt"
+    echo ""
+    exit 1
+}
+if [[ -z "${conf}" ]]; then
+    display_help
+fi
+
+function gk() {
+    stoml "${conf}" "${1}"
+}
+
+export PGPASSWORD="$(gk "pg_pass")"
+pg_args="-w -h $(gk "pg_host") -p $(gk "pg_port") -U $(gk "pg_user") $(gk "pg_db")"
+
+function pull() {
+    dbname="postgresql://${pg_user}:${pg_pass}@${pg_host}:${pg_port}/${pg_db}"
+    target_file="${dump_dir}/$(date +%Y%m%d_%H%M%S).gz"
+    mkdir -p "${dump_dir}"
+    pg_dump ${pg_args} | gzip >"${target_file}"
+}
+
+function push() {
+    gunzip "${dump}" | psql ${pg_args}
+}
+
+function drop() {
+    echo ""
+    printf "You're about to overwrite your current database. "
+    read -p "Sure to continue? y/n   " inp
+    if [[ "${inp}" != "y" ]]; then
+        echo -e "Abort.\n"
+        exit
+    fi
+    dropdb ${pg_args}
+}
+
+function create() {
+    createdb ${push_args}
+}
+
+case "${cmd}" in
+pull) pull ;;
+push) push ;;
+drop) drop ;;
+create) create ;;
+*) display_help ;;
+esac
