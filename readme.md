@@ -8,7 +8,12 @@
 
 ## Prereqs
 
-1. [stoml](https://github.com/freshautomations/stoml) which is used to read config files
+Required are `pg_dump`, `psql`, `createdb`, `dropdb`.
+
+```shell
+# install on ubuntu
+apt install -u postgresql-client
+```
 
 ## Usage
 

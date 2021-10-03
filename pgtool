@@ -17,11 +17,17 @@ if [[ -z "${conf}" ]]; then
 fi
 
 function gk() {
-    stoml "${conf}" "${1}"
+    cat "${conf}" |
+        grep -E "^${1}" | grep -Po "[^=]+$" | grep -Po "(?<=\").*(?=\")"
 }
 
-export PGPASSWORD="$(gk "pg_pass")"
-pg_args="-w -h $(gk "pg_host") -p $(gk "pg_port") -U $(gk "pg_user") $(gk "pg_db")"
+pg_pass="$(gk "pg_pass")"
+pg_args=""
+if [[ -n "${pg_pass}" ]]; then
+    export PGPASSWORD="${pg_pass}"
+    pg_args+="-w "
+fi
+pg_args+="-h $(gk "pg_host") -p $(gk "pg_port") -U $(gk "pg_user") $(gk "pg_db")"
 
 function pull() {
     target_file="${dump_dir}/$(date +%Y%m%d_%H%M%S).sql.gz"
