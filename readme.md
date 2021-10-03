@@ -25,22 +25,24 @@ Available commands:
     push   - use dump and push it into a database
     drop   - drop database
     create - create database
+    list   - list tables
 
 Usage:
     pgtool pull conf.toml
     pgtool push conf.toml dump.gz
     pgtool drop conf.toml
     pgtool create conf.toml
+    pgtool list conf.toml
 ```
 
 ## Config file layout
 
-Config files are written in toml and look like this.
+Config files are written in toml and look like this. Commented values will not be passed to final run commands.
 
 ```toml
 pg_host = "postgres_host"
 pg_port = "5432"
 pg_db = "db_name"
 pg_user = "user"
-pg_pass = "password"
+# pg_pass = "password"
 ```

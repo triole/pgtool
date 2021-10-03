@@ -36,8 +36,8 @@ function gk() {
         grep -E "^${1}" | grep -Po "[^=]+$" | grep -Po "(?<=\").*(?=\")"
 }
 
-pg_pass="$(gk "pg_pass")"
 pg_args=""
+pg_pass="$(gk "pg_pass")"
 if [[ -n "${pg_pass}" ]]; then
     export PGPASSWORD="${pg_pass}"
     pg_args+="-w "
@@ -71,10 +71,15 @@ function create() {
     rcmd "createdb ${push_args}"
 }
 
+function list() {
+    rcmd "psql -l -t"
+}
+
 case "${cmd}" in
 pull) pull ;;
 push) push ;;
 drop) drop ;;
+list) list ;;
 create) create ;;
 *) display_help ;;
 esac
