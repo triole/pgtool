@@ -63,7 +63,8 @@ function pull() {
 }
 
 function push() {
-    rcmd "gunzip \"${dump}\" | psql ${pg_args}"
+    rcmd "createdb ${pg_args}" &&
+        rcmd "zcat \"${dump}\" | psql ${pg_args}"
 }
 
 function drop() {
@@ -79,10 +80,6 @@ function drop() {
     rcmd "dropdb ${pg_args}"
 }
 
-function create() {
-    rcmd "createdb ${push_args}"
-}
-
 function list() {
     rcmd "psql -l -t"
 }
@@ -93,6 +90,5 @@ pull) pull ;;
 push) push ;;
 drop) drop ;;
 list) list ;;
-create) create ;;
 *) display_help ;;
 esac
