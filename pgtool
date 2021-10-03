@@ -15,8 +15,9 @@ for val in "$@"; do
 done
 
 function rcmd() {
-    echo -e "\n\033[0;93m${1}\033[0m"
-    if [[ "${debug}" == "false" ]]; then
+    if [[ "${debug}" != "false" ]]; then
+        echo -e "\n\033[0;93m${1}\033[0m"
+    else
         eval "${1}"
     fi
 }
