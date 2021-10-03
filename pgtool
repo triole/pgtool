@@ -37,7 +37,7 @@ function gk() {
 }
 
 function add_arg() {
-    arg="$(gk "${2}")"
+    arg="$(gk "${2}" | envsubst)"
     if [[ -n "${arg}" ]]; then
         pg_args+=" ${1} ${arg}"
     fi
