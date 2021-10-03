@@ -7,6 +7,20 @@ cmd="${1}"
 conf="${2}"
 dump="${3}"
 
+debug="false"
+for val in "$@"; do
+    if [[ "${val}" =~ ^-+(d|debug)$ ]]; then
+        debug="true"
+    fi
+done
+
+function rcmd() {
+    echo -e "\n\033[0;93m${1}\033[0m"
+    if [[ "${debug}" == "false" ]]; then
+        eval "${1}"
+    fi
+}
+
 function display_help() {
     cat "${scriptdir}/doc/help.txt"
     echo ""
@@ -31,27 +45,29 @@ pg_args+="-h $(gk "pg_host") -p $(gk "pg_port") -U $(gk "pg_user") $(gk "pg_db")
 
 function pull() {
     target_file="${dump_dir}/$(date +%Y%m%d_%H%M%S).sql.gz"
-    mkdir -p "${dump_dir}"
-    pg_dump ${pg_args} | gzip >"${target_file}"
+    rcmd "mkdir -p \"${dump_dir}\""
+    rcmd "pg_dump ${pg_args} | gzip >\"${target_file}\""
 }
 
 function push() {
-    gunzip "${dump}" | psql ${pg_args}
+    rcmd "gunzip \"${dump}\" | psql ${pg_args}"
 }
 
 function drop() {
-    echo ""
-    printf "You're about to overwrite your current database. "
-    read -p "Sure to continue? y/n   " inp
-    if [[ "${inp}" != "y" ]]; then
-        echo -e "Abort.\n"
-        exit
+    if [[ "${debug}" == "false" ]]; then
+        echo ""
+        printf "You're about to overwrite your current database. "
+        read -p "Sure to continue? y/n   " inp
+        if [[ "${inp}" != "y" ]]; then
+            echo -e "Abort.\n"
+            exit
+        fi
     fi
-    dropdb ${pg_args}
+    rcmd "dropdb ${pg_args}"
 }
 
 function create() {
-    createdb ${push_args}
+    rcmd "createdb ${push_args}"
 }
 
 case "${cmd}" in
