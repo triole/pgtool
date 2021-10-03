@@ -36,14 +36,26 @@ function gk() {
         grep -E "^${1}" | grep -Po "[^=]+$" | grep -Po "(?<=\").*(?=\")"
 }
 
-pg_args=""
+function add_arg() {
+    arg="$(gk "${2}")"
+    if [[ -n "${arg}" ]]; then
+        pg_args+=" ${1} ${arg}"
+    fi
+}
+
 pg_pass="$(gk "pg_pass")"
 if [[ -n "${pg_pass}" ]]; then
     export PGPASSWORD="${pg_pass}"
-    pg_args+="-w "
+    pg_args+="-w"
 fi
-pg_args+="-h $(gk "pg_host") -p $(gk "pg_port") -U $(gk "pg_user") $(gk "pg_db")"
 
+pg_args=""
+add_arg "-h" "pg_host"
+add_arg "-p" "pg_port"
+add_arg "-U" "pg_user"
+add_arg "" "pg_db"
+
+# pg functions
 function pull() {
     target_file="${dump_dir}/$(date +%Y%m%d_%H%M%S).sql.gz"
     rcmd "mkdir -p \"${dump_dir}\""
@@ -75,6 +87,7 @@ function list() {
     rcmd "psql -l -t"
 }
 
+# main
 case "${cmd}" in
 pull) pull ;;
 push) push ;;
