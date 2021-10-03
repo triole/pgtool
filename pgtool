@@ -24,7 +24,6 @@ export PGPASSWORD="$(gk "pg_pass")"
 pg_args="-w -h $(gk "pg_host") -p $(gk "pg_port") -U $(gk "pg_user") $(gk "pg_db")"
 
 function pull() {
-    dbname="postgresql://${pg_user}:${pg_pass}@${pg_host}:${pg_port}/${pg_db}"
     target_file="${dump_dir}/$(date +%Y%m%d_%H%M%S).sql.gz"
     mkdir -p "${dump_dir}"
     pg_dump ${pg_args} | gzip >"${target_file}"
