@@ -1,7 +1,5 @@
 #!/bin/bash
 scriptdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-dump_dir="${scriptdir}/dump"
-mkdir -p "${dump_dir}"
 
 cmd="${1}"
 conf="${2}"
@@ -20,7 +18,7 @@ done
 
 function rcmd() {
     if [[ ("${debug}" != "false" || "${verbose}" == "true") ]]; then
-        echo -e "\n\033[0;93m${1}\033[0m"
+        echo -e "\033[0;93m${1}\033[0m"
     fi
     if [[ "${debug}" == "false" ]]; then
         eval "${1}"
@@ -49,6 +47,7 @@ function add_arg() {
     fi
 }
 
+# acquire and assemble settings
 pg_pass="$(gk "pg_pass")"
 if [[ -n "${pg_pass}" ]]; then
     export PGPASSWORD="${pg_pass}"
@@ -60,7 +59,14 @@ add_arg "-h" "pg_host"
 add_arg "-p" "pg_port"
 add_arg "-U" "pg_user"
 add_arg "" "pg_db"
-run_inside_docker=$(gk "run_inside_docker")
+
+dump_dir="$(realpath $(gk "dump_dir"))"
+if [[ -z "${dump_dir}" ]]; then
+    dump_dir="${scriptdir}/dump"
+fi
+mkdir -p "${dump_dir}"
+
+run_inside_docker="$(gk "run_inside_docker")"
 
 docker_exec=""
 if [[ -n "${run_inside_docker}" ]]; then

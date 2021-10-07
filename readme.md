@@ -45,9 +45,10 @@ pg_db = "db_name"
 pg_user = "user"
 # pg_pass = "password"
 
-# postgres runs inside a docker and the port is not exposed?
-# state the container's name below, to run the pg commands inside it
+# folder where to save the dumps, if not defined "dump" in pgtool folder is used
+dump_dir = "/tmp"
+
+# enable below if postgres runs inside a docker
+# state container's name and pg commands will be run inside it
 # run_inside_docker = "postgres_container"
 ```
-
-The config file also supports env vars like so `pg_user = "${PG_USER}"`.
