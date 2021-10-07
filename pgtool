@@ -62,20 +62,20 @@ add_arg "-U" "pg_user"
 add_arg "" "pg_db"
 run_inside_docker=$(gk "run_inside_docker")
 
-docker_cmd=""
+docker_exec=""
 if [[ -n "${run_inside_docker}" ]]; then
-    docker_cmd="docker exec -it ${run_inside_docker} "
+    docker_exec="docker exec ${run_inside_docker} "
 fi
 
 # pg functions
 function pull() {
     target_file="${dump_dir}/$(date +%Y%m%d_%H%M%S).sql.gz"
     rcmd "mkdir -p \"${dump_dir}\""
-    rcmd "${docker_cmd}pg_dump ${pg_args} | gzip >\"${target_file}\""
+    rcmd "${docker_exec}pg_dump ${pg_args} | gzip >\"${target_file}\""
 }
 
 function push() {
-    rcmd "${docker_cmd}createdb ${pg_args}" &&
+    rcmd "${docker_exec}createdb ${pg_args}" &&
         rcmd "zcat \"${dump}\" | psql ${pg_args}"
 }
 
@@ -89,11 +89,11 @@ function drop() {
             exit
         fi
     fi
-    rcmd "${docker_cmd}dropdb ${pg_args}"
+    rcmd "${docker_exec}dropdb ${pg_args}"
 }
 
 function list() {
-    rcmd "${docker_cmd}psql ${pg_args} -l -t"
+    rcmd "${docker_exec}psql ${pg_args} -l -t"
 }
 
 # main
