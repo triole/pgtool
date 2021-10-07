@@ -45,6 +45,9 @@ pg_db = "db_name"
 pg_user = "user"
 # pg_pass = "password"
 
-# you could also use env vars, i.e. to retrieve password
-pg_pass = "${PG_PASS}"
+# postgres runs inside a docker and the port is not exposed?
+# state the container's name below, to run the pg commands inside it
+# run_inside_docker = "postgres_container"
 ```
+
+The config file also supports env vars like so `pg_user = "${PG_USER}"`.

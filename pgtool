@@ -8,16 +8,21 @@ conf="${2}"
 dump="${3}"
 
 debug="false"
+verbose="false"
 for val in "$@"; do
     if [[ "${val}" =~ ^-+(d|debug)$ ]]; then
         debug="true"
     fi
+    if [[ "${val}" =~ ^-+(v|verbose)$ ]]; then
+        verbose="true"
+    fi
 done
 
 function rcmd() {
-    if [[ "${debug}" != "false" ]]; then
+    if [[ ("${debug}" != "false" || "${verbose}" == "true") ]]; then
         echo -e "\n\033[0;93m${1}\033[0m"
-    else
+    fi
+    if [[ "${debug}" == "false" ]]; then
         eval "${1}"
     fi
 }
@@ -33,11 +38,12 @@ fi
 
 function gk() {
     cat "${conf}" |
-        grep -E "^${1}" | grep -Po "[^=]+$" | grep -Po "(?<=\").*(?=\")"
+        grep -E "^${1}" | grep -Po "[^=]+$" | grep -Po "(?<=\").*(?=\")" |
+        envsubst
 }
 
 function add_arg() {
-    arg="$(gk "${2}" | envsubst)"
+    arg="$(gk "${2}")"
     if [[ -n "${arg}" ]]; then
         pg_args+=" ${1} ${arg}"
     fi
@@ -54,16 +60,22 @@ add_arg "-h" "pg_host"
 add_arg "-p" "pg_port"
 add_arg "-U" "pg_user"
 add_arg "" "pg_db"
+run_inside_docker=$(gk "run_inside_docker")
+
+docker_cmd=""
+if [[ -n "${run_inside_docker}" ]]; then
+    docker_cmd="docker exec -it ${run_inside_docker} "
+fi
 
 # pg functions
 function pull() {
     target_file="${dump_dir}/$(date +%Y%m%d_%H%M%S).sql.gz"
     rcmd "mkdir -p \"${dump_dir}\""
-    rcmd "pg_dump ${pg_args} | gzip >\"${target_file}\""
+    rcmd "${docker_cmd}pg_dump ${pg_args} | gzip >\"${target_file}\""
 }
 
 function push() {
-    rcmd "createdb ${pg_args}" &&
+    rcmd "${docker_cmd}createdb ${pg_args}" &&
         rcmd "zcat \"${dump}\" | psql ${pg_args}"
 }
 
@@ -77,11 +89,11 @@ function drop() {
             exit
         fi
     fi
-    rcmd "dropdb ${pg_args}"
+    rcmd "${docker_cmd}dropdb ${pg_args}"
 }
 
 function list() {
-    rcmd "psql -l -t"
+    rcmd "${docker_cmd}psql ${pg_args} -l -t"
 }
 
 # main
