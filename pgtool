@@ -94,7 +94,7 @@ function push() {
 function drop() {
     if [[ "${debug}" == "false" ]]; then
         echo ""
-        printf "You're about to overwrite your current database. "
+        printf "Attention: you're about to kill your database."
         read -p "Sure to continue? y/n   " inp
         if [[ "${inp}" != "y" ]]; then
             echo -e "Abort.\n"
