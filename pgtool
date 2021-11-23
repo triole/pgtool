@@ -60,7 +60,9 @@ add_arg "-p" "pg_port"
 add_arg "-U" "pg_user"
 add_arg "" "pg_db"
 
-dump_dir="$(realpath $(gk "dump_dir"))"
+if [[ -n $(gk "dump_dir") ]]; then
+    dump_dir="$(realpath $(gk "dump_dir"))"
+fi
 if [[ -z "${dump_dir}" ]]; then
     dump_dir="${scriptdir}/dump"
 fi
