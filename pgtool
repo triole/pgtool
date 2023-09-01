@@ -27,12 +27,11 @@ rcmd() {
 
 display_help() {
   cat "${scriptdir}/doc/help.txt"
+  echo -e "\nexample toml config"
+  cat "${scriptdir}/doc/conf.toml" | sed "s|^|  |g"
   echo ""
   exit 1
 }
-if [[ -z "${conf}" ]]; then
-  display_help
-fi
 
 gk() {
   cat "${conf}" |
@@ -48,6 +47,10 @@ add_arg() {
 }
 
 # acquire and assemble settings
+if [[ -z "${conf}" ]]; then
+  display_help
+fi
+
 pg_pass="$(gk "pg_pass")"
 if [[ -n "${pg_pass}" ]]; then
   export PGPASSWORD="${pg_pass}"
