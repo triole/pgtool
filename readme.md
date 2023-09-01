@@ -1,10 +1,11 @@
 # Pgtool
 
-<!--- mdtoc: toc begin -->
+<!-- toc -->
 
-1. [Prereqs](#prereqs)
-2. [Usage](#usage)
-3. [Config file layout](#config-file-layout)<!--- mdtoc: toc end -->
+- [Prereqs](#prereqs)
+- [Usage](#usage)
+
+<!-- /toc -->
 
 ## Prereqs
 
@@ -21,34 +22,30 @@ apt install -u postgresql-client
 Command and config required. Please provide both args.
 
 Available commands:
-    pull   - pull db and save to gz file, pgdump
-    push   - use dump and push it into a database
-    drop   - drop database
-    list   - list tables
+  pull   - pull db and save to gz file, pgdump
+  push   - use dump and push it into a database
+  drop   - drop database
+  list   - list tables
 
 Usage:
-    pgtool pull conf.toml
-    pgtool push conf.toml dump.gz
-    pgtool drop conf.toml
-    pgtool list conf.toml
+  pgtool pull conf.toml
+  pgtool push conf.toml dump.gz
+  pgtool drop conf.toml
+  pgtool list conf.toml
 ```
 
 ## Config file layout
 
 Config files are written in toml and look like this. Commented values will not be passed to final run commands.
 
-```toml
-# example with password disabled
+```go mdox-exec="cat doc/conf.toml"
 pg_host = "postgres_host"
 pg_port = "5432"
 pg_db = "db_name"
 pg_user = "user"
+# if password is disabled, like below, you'll be prompted
 # pg_pass = "password"
 
-# folder where to save the dumps, if not defined "dump" in pgtool folder is used
+# folder where to save the dumps, if not defined current dir
 dump_dir = "/tmp"
-
-# enable below if postgres runs inside a docker
-# state container's name and pg commands will be run inside it
-# run_inside_docker = "postgres_container"
 ```

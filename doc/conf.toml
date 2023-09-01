@@ -1,0 +1,9 @@
+pg_host = "postgres_host"
+pg_port = "5432"
+pg_db = "db_name"
+pg_user = "user"
+# if password is disabled, like below, you'll be prompted
+# pg_pass = "password"
+
+# folder where to save the dumps, if not defined current dir
+dump_dir = "/tmp"
