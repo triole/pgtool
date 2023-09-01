@@ -1,12 +1,16 @@
 Command and config required. Please provide both args.
 
-Available commands:
+available commands
   pull   - pull db and save to gz file, pgdump
   push   - use dump and push it into a database
   drop   - drop database
   list   - list tables
 
-Usage:
+flags
+  -n/--dryrun   just print, don't do
+  -v/--verbose  print every command before running it
+
+usage
   pgtool pull conf.toml
   pgtool push conf.toml dump.gz
   pgtool drop conf.toml

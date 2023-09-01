@@ -5,53 +5,53 @@ cmd="${1}"
 conf="${2}"
 dump="${3}"
 
-debug="false"
+dryrun="false"
 verbose="false"
-for val in "$@"; do
-    if [[ "${val}" =~ ^-+(d|debug)$ ]]; then
-        debug="true"
-    fi
-    if [[ "${val}" =~ ^-+(v|verbose)$ ]]; then
-        verbose="true"
-    fi
+for val in "${@}"; do
+  if [[ "${val}" =~ ^-+(n|dryrun)$ ]]; then
+    dryrun="true"
+  fi
+  if [[ "${val}" =~ ^-+(v|verbose)$ ]]; then
+    verbose="true"
+  fi
 done
 
-function rcmd() {
-    if [[ ("${debug}" != "false" || "${verbose}" == "true") ]]; then
-        echo -e "\033[0;93m${1}\033[0m"
-    fi
-    if [[ "${debug}" == "false" ]]; then
-        eval "${1}"
-    fi
+rcmd() {
+  if [[ ("${dryrun}" != "false" || "${verbose}" == "true") ]]; then
+    echo -e "\033[0;93m${1}\033[0m"
+  fi
+  if [[ "${dryrun}" == "false" ]]; then
+    eval "${1}"
+  fi
 }
 
-function display_help() {
-    cat "${scriptdir}/doc/help.txt"
-    echo ""
-    exit 1
+display_help() {
+  cat "${scriptdir}/doc/help.txt"
+  echo ""
+  exit 1
 }
 if [[ -z "${conf}" ]]; then
-    display_help
+  display_help
 fi
 
-function gk() {
-    cat "${conf}" |
-        grep -E "^${1}" | grep -Po "[^=]+$" | grep -Po "(?<=\").*(?=\")" |
-        envsubst
+gk() {
+  cat "${conf}" |
+    grep -E "^${1}" | grep -Po "[^=]+$" | grep -Po "(?<=\").*(?=\")" |
+    envsubst
 }
 
-function add_arg() {
-    arg="$(gk "${2}")"
-    if [[ -n "${arg}" ]]; then
-        pg_args+=" ${1} ${arg}"
-    fi
+add_arg() {
+  arg="$(gk "${2}")"
+  if [[ -n "${arg}" ]]; then
+    pg_args+=" ${1} ${arg}"
+  fi
 }
 
 # acquire and assemble settings
 pg_pass="$(gk "pg_pass")"
 if [[ -n "${pg_pass}" ]]; then
-    export PGPASSWORD="${pg_pass}"
-    pg_args+="-w"
+  export PGPASSWORD="${pg_pass}"
+  pg_args+="-w"
 fi
 
 pg_args=""
@@ -61,58 +61,47 @@ add_arg "-U" "pg_user"
 add_arg "" "pg_db"
 
 if [[ -n $(gk "dump_dir") ]]; then
-    dump_dir="$(realpath $(gk "dump_dir"))"
+  dump_dir="$(realpath $(gk "dump_dir"))"
 fi
 if [[ -z "${dump_dir}" ]]; then
-    dump_dir="${scriptdir}/dump"
+  dump_dir="${scriptdir}/dump"
 fi
 mkdir -p "${dump_dir}"
 
-run_inside_docker="$(gk "run_inside_docker")"
-
-dk_exec=""
-dk_execi="docker exec --interactive ${run_inside_docker} "
-if [[ -n "${run_inside_docker}" ]]; then
-    dk_exec="docker exec ${run_inside_docker} "
-fi
-
 # pg functions
-function pull() {
-    target_file="${dump_dir}/$(date +%Y%m%d_%H%M%S).sql.gz"
-    rcmd "mkdir -p \"${dump_dir}\""
-    rcmd "${dk_exec}pg_dump ${pg_args} | gzip >\"${target_file}\""
-}
-
-function push() {
-    if [[ -n "${run_inside_docker}" ]]; then
-        dk_exec="${dk_execi}"
+drop() {
+  if [[ "${dryrun}" == "false" ]]; then
+    echo ""
+    printf "Attention: you're about to kill your database."
+    read -p "Sure to continue? y/n   " inp
+    if [[ "${inp}" != "y" ]]; then
+      echo -e "Abort.\n"
+      exit
     fi
-    rcmd "${dk_exec}createdb ${pg_args}" &&
-        rcmd "zcat \"${dump}\" | ${dk_exec}psql ${pg_args}"
+  fi
+  rcmd "dropdb ${pg_args}"
 }
 
-function drop() {
-    if [[ "${debug}" == "false" ]]; then
-        echo ""
-        printf "Attention: you're about to kill your database."
-        read -p "Sure to continue? y/n   " inp
-        if [[ "${inp}" != "y" ]]; then
-            echo -e "Abort.\n"
-            exit
-        fi
-    fi
-    rcmd "${dk_exec}dropdb ${pg_args}"
+list() {
+  rcmd "psql ${pg_args} -l -t"
 }
 
-function list() {
-    rcmd "${dk_exec}psql ${pg_args} -l -t"
+pull() {
+  target_file="${dump_dir}/$(date +%Y%m%d_%H%M%S).sql.gz"
+  rcmd "mkdir -p \"${dump_dir}\""
+  rcmd "pg_dump ${pg_args} | gzip >\"${target_file}\""
+}
+
+push() {
+  rcmd "createdb ${pg_args}" &&
+    rcmd "zcat \"${dump}\" | psql ${pg_args}"
 }
 
 # main
 case "${cmd}" in
-pull) pull ;;
-push) push ;;
-drop) drop ;;
-list) list ;;
-*) display_help ;;
+  pull) pull ;;
+  push) push ;;
+  drop) drop ;;
+  list) list ;;
+  *) display_help ;;
 esac
